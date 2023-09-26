@@ -4,17 +4,21 @@
     <meta charset="UTF-8">
     <title>Spinning Room</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('bg.jpg') no-repeat center center fixed; 
+            background-size: cover;
+        }
     </style>
 </head>
 <body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
 <script>
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
@@ -60,8 +64,8 @@
         const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
 
         const wall = new THREE.Mesh(geometry, material);
-        wall.position.set((x + nextX) / 2, wallHeight / 2, (z + nextZ) / 2);
-        wall.lookAt(new THREE.Vector3(0, 0, 0));
+        wall.position.set((x + nextX) / 2, wallHeight / 2 - 2.5, (z + nextZ) / 2);
+        wall.lookAt(new THREE.Vector3(0, wallHeight / 2 - 2.5, 0));
         scene.add(wall);
         walls.push(wall);
     }
@@ -70,13 +74,13 @@
     const centralGeometry = new THREE.PlaneGeometry(5, 5);
     const centralMaterial = new THREE.MeshBasicMaterial({ map: centralTexture, transparent: true, opacity: 0.7 });
     const centralObject = new THREE.Mesh(centralGeometry, centralMaterial);
-    centralObject.position.set(0, wallHeight / 2, 0);
+    centralObject.position.set(0, 0, 6);
+    centralObject.lookAt(camera.position);
+
     scene.add(centralObject);
 
-    camera.position.set(0, 5, 15);
-    camera.lookAt(new THREE.Vector3(0, wallHeight / 2, 0));
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    camera.position.set(0, 2.5, 0); 
+    camera.lookAt(new THREE.Vector3(0, 2.5, 1));
 
     const animate = () => {
         requestAnimationFrame(animate);
@@ -85,7 +89,6 @@
             walls[i].scale.x = 1 + 0.05 * Math.sin(0.5 * Date.now() * 0.001 + i);
             walls[i].scale.y = 1 + 0.05 * Math.sin(0.5 * Date.now() * 0.001 + i);
         }
-        controls.update();
         renderer.render(scene, camera);
     };
     animate();
