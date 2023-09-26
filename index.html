@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spinning Room</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+    </style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0x888888);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
+
+    const imagePaths = [
+        '1.jpeg',
+        '2.jpeg',
+        '3.jpeg',
+        '4.jpeg',
+        '5.jpeg',
+        '6.jpeg',
+        '7.jpeg',
+        '8.jpeg',
+        '9.jpeg',
+        '10.jpg',
+        '11.jpg',
+        '12.jpg'
+    ];
+
+    const walls = [];
+    const radius = 11;
+    const wallHeight = 5;
+    const segmentAngle = Math.PI / 6;
+    for (let i = 0; i < 12; i++) {
+        const angle = segmentAngle * i;
+        const x = radius * Math.cos(angle);
+        const z = radius * Math.sin(angle);
+
+        const nextAngle = angle + segmentAngle;
+        const nextX = radius * Math.cos(nextAngle);
+        const nextZ = radius * Math.sin(nextAngle);
+
+        const wallWidth = Math.sqrt((nextX - x) ** 2 + (nextZ - z) ** 2);
+        const geometry = new THREE.PlaneGeometry(wallWidth, wallHeight);
+
+        const texture = new THREE.TextureLoader().load(imagePaths[i]);
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+
+        const wall = new THREE.Mesh(geometry, material);
+        wall.position.set((x + nextX) / 2, wallHeight / 2, (z + nextZ) / 2);
+        wall.lookAt(new THREE.Vector3(0, 0, 0));
+        scene.add(wall);
+        walls.push(wall);
+    }
+
+    const centralTexture = new THREE.TextureLoader().load('tree.png');
+    const centralGeometry = new THREE.PlaneGeometry(5, 5);
+    const centralMaterial = new THREE.MeshBasicMaterial({ map: centralTexture, transparent: true, opacity: 0.7 });
+    const centralObject = new THREE.Mesh(centralGeometry, centralMaterial);
+    centralObject.position.set(0, wallHeight / 2, 0);
+    scene.add(centralObject);
+
+    camera.position.set(0, 5, 15);
+    camera.lookAt(new THREE.Vector3(0, wallHeight / 2, 0));
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    const animate = () => {
+        requestAnimationFrame(animate);
+        scene.rotation.y += 0.001;
+        for(let i = 0; i < walls.length; i++) {
+            walls[i].scale.x = 1 + 0.05 * Math.sin(0.5 * Date.now() * 0.001 + i);
+            walls[i].scale.y = 1 + 0.05 * Math.sin(0.5 * Date.now() * 0.001 + i);
+        }
+        controls.update();
+        renderer.render(scene, camera);
+    };
+    animate();
+</script>
+</body>
+</html>
